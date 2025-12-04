@@ -15,6 +15,12 @@ Base URL: `/api/v1`
 | PATCH | `/accounts/auth/profile/` | Yes | Update user profile |
 | POST | `/accounts/auth/change-password/` | Yes | Change password |
 
+## Company Endpoints
+
+| Method | Endpoint | Auth Required | Description |
+|--------|----------|---------------|-------------|
+| GET | `/accounts/company/` | Yes | Get current user's company details |
+
 ## Onboarding Endpoints
 
 | Method | Endpoint | Auth Required | Description |

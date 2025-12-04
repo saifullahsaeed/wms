@@ -129,6 +129,25 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
+class CompanyView(generics.RetrieveAPIView):
+    """
+    Get current user's company details.
+
+    GET /api/v1/accounts/company/ - Get current user's company information
+    """
+
+    serializer_class = CompanySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        """Return the current user's company."""
+        user = self.request.user
+        if not user.company:
+            raise NotFound("User is not associated with a company.")
+
+        return user.company
+
+
 class CompanyOnboardingView(generics.UpdateAPIView):
     """
     Company onboarding endpoint - update company with essential business information.

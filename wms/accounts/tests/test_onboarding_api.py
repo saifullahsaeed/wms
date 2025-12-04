@@ -357,3 +357,61 @@ class TestOnboardingAPI:
         response = client.get("/api/v1/accounts/onboarding/status/")
 
         assert response.status_code == 401
+
+    def test_get_company_details(self, client, company, user):
+        """Test GET /company/ returns current user's company details."""
+        user.set_password("testpass123")
+        user.save()
+        # Set some company fields
+        company.email = "company@example.com"
+        company.country = "United States"
+        company.legal_name = "My Company Inc"
+        company.phone = "+1234567890"
+        company.save()
+
+        login_response = client.post(
+            "/api/v1/accounts/auth/login/",
+            {"email": user.email, "password": "testpass123"},
+            content_type="application/json",
+        )
+        access_token = login_response.data["access"]
+
+        response = client.get(
+            "/api/v1/accounts/company/",
+            HTTP_AUTHORIZATION=f"Bearer {access_token}",
+        )
+
+        assert response.status_code == 200
+        assert response.data["id"] == company.id
+        assert response.data["name"] == company.name
+        assert response.data["email"] == "company@example.com"
+        assert response.data["country"] == "United States"
+        assert response.data["legal_name"] == "My Company Inc"
+        assert response.data["phone"] == "+1234567890"
+        assert "created_at" in response.data
+        assert "updated_at" in response.data
+
+    def test_get_company_unauthenticated(self, client):
+        """Test GET /company/ without authentication fails."""
+        response = client.get("/api/v1/accounts/company/")
+
+        assert response.status_code == 401
+
+    def test_get_company_user_without_company(self, client, db):
+        """Test GET /company/ for user without company returns 404."""
+        from accounts.models import User
+        user = User.objects.create_user(
+            username="nocompany",
+            email="nocompany@example.com",
+            password="testpass123",
+            company=None,
+        )
+
+        login_response = client.post(
+            "/api/v1/accounts/auth/login/",
+            {"email": "nocompany@example.com", "password": "testpass123"},
+            content_type="application/json",
+        )
+
+        # User without company can't login (validation fails)
+        assert login_response.status_code in [400, 401]

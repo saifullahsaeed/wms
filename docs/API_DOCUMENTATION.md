@@ -287,9 +287,48 @@ Authorization: Bearer <access_token>
 
 ---
 
+## Company APIs
+
+### 8. Get My Company
+**GET** `/accounts/company/`
+
+**Authentication:** Required
+
+**Response (200 OK):**
+```json
+{
+  "id": 1,
+  "name": "My Company",
+  "legal_name": "My Company Inc LLC",
+  "email": "company@example.com",
+  "phone": "+1234567890",
+  "website": "https://company.com",
+  "address_line1": "123 Main St",
+  "address_line2": "Suite 100",
+  "city": "New York",
+  "state": "NY",
+  "postal_code": "10001",
+  "country": "United States",
+  "tax_id": "TAX123",
+  "registration_number": "REG456",
+  "is_active": true,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T12:00:00Z"
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid authentication token
+- `404 Not Found`: User is not associated with a company
+
+**Use Case:**
+Get complete company information for the current logged-in user. Useful for displaying company details in settings, profile pages, or company management screens.
+
+---
+
 ## Onboarding APIs
 
-### 8. Check Onboarding Status
+### 9. Check Onboarding Status
 **GET** `/accounts/onboarding/status/`
 
 **Authentication:** Required
@@ -319,7 +358,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 9. Update Company Onboarding Info
+### 10. Update Company Onboarding Info
 **PATCH** `/accounts/onboarding/`
 
 **Authentication:** Required
@@ -381,7 +420,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ## Warehouse APIs
 
-### 10. List Warehouses
+### 11. List Warehouses
 **GET** `/masterdata/warehouses/`
 
 **Authentication:** Required
@@ -433,7 +472,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 11. Create Warehouse
+### 12. Create Warehouse
 **POST** `/masterdata/warehouses/`
 
 **Authentication:** Required
@@ -485,7 +524,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 12. Get Warehouse Details
+### 13. Get Warehouse Details
 **GET** `/masterdata/warehouses/{id}/`
 
 **Authentication:** Required
@@ -507,7 +546,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 13. Update Warehouse
+### 14. Update Warehouse
 **PUT** `/masterdata/warehouses/{id}/` - Full update
 **PATCH** `/masterdata/warehouses/{id}/` - Partial update
 
@@ -539,7 +578,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 14. Delete Warehouse
+### 15. Delete Warehouse
 **DELETE** `/masterdata/warehouses/{id}/`
 
 **Authentication:** Required
