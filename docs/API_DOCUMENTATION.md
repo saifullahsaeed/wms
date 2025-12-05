@@ -221,6 +221,8 @@ Authorization: Bearer <access_token>
 }
 ```
 
+**Note:** The following fields are read-only and cannot be updated: `id`, `username`, `company_id`, `company_name`, `is_active`, `is_staff`, `is_superuser`, `date_joined`, `last_login`, `warehouses`.
+
 **Response (200 OK):**
 ```json
 {
@@ -231,9 +233,33 @@ Authorization: Bearer <access_token>
   "last_name": "Smith",
   "company_id": 1,
   "company_name": "My Company",
-  // ... other fields
+  "employee_code": "EMP002",
+  "job_title": "Supervisor",
+  "phone": "+1987654321",
+  "mobile": "+1987654322",
+  "language": "es",
+  "time_zone": "America/Los_Angeles",
+  "is_warehouse_operator": false,
+  "is_active": true,
+  "is_staff": true,
+  "is_superuser": false,
+  "date_joined": "2024-01-01T00:00:00Z",
+  "last_login": "2024-01-01T12:00:00Z",
+  "warehouses": [
+    {
+      "warehouse_id": 1,
+      "warehouse_code": "WH-001",
+      "warehouse_name": "Main Warehouse",
+      "role": "Manager",
+      "is_primary": true
+    }
+  ]
 }
 ```
+
+**Error Responses:**
+- `400 Bad Request`: Validation errors
+- `401 Unauthorized`: Missing or invalid authentication token
 
 ---
 
@@ -284,6 +310,8 @@ Authorization: Bearer <access_token>
 
 **Error Responses:**
 - `400 Bad Request`: Missing refresh token or invalid token
+  - `{"error": "Refresh token is required."}` - When refresh token is missing
+  - `{"error": "Invalid token or token already blacklisted."}` - When token is invalid or already blacklisted
 
 ---
 
@@ -449,8 +477,8 @@ Check this endpoint after signup to determine if user needs to complete onboardi
       "postal_code": "10001",
       "country": "USA",
       "time_zone": "America/New_York",
-      "latitude": "40.7128",
-      "longitude": "-74.0060",
+      "latitude": "40.712800",
+      "longitude": "-74.006000",
       "type": "main",
       "is_active": true,
       "allow_negative_stock": false,
@@ -492,8 +520,8 @@ Check this endpoint after signup to determine if user needs to complete onboardi
   "postal_code": "10001",
   "country": "USA",
   "time_zone": "America/New_York",
-  "latitude": "40.7128",
-  "longitude": "-74.0060",
+  "latitude": "40.712800",
+  "longitude": "-74.006000",
   "type": "main",                      // Options: "main", "store", "3pl", "other"
   "is_active": true,
   "allow_negative_stock": false,
