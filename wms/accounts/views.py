@@ -9,9 +9,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
-from django.db.models import Q, Coalesce
-from django.db.models.functions import Concat
-from django.db.models import Value as V, CharField
+from django.db.models import Q, Value as V, CharField
+from django.db.models.functions import Concat, Coalesce
 
 from .serializers import (
     CompanyOnboardingSerializer,
