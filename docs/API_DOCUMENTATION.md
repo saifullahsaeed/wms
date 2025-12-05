@@ -618,6 +618,81 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
+### 16. Check Warehouse Code Availability
+**POST** `/masterdata/warehouses/check-code/`
+**GET** `/masterdata/warehouses/check-code/`
+
+**Authentication:** Required
+
+**Request Body (POST):**
+```json
+{
+  "warehouse_code": "WH-001",    // Required
+  "user_id": 1,                  // Optional - if provided, uses this user's company
+  "company_id": 1                // Optional - if provided, checks this company directly
+}
+```
+
+**Query Parameters (GET):**
+- `warehouse_code` (required): Warehouse code to check
+- `user_id` (optional): User ID - if provided, uses this user's company
+- `company_id` (optional): Company ID - if provided, checks this company directly
+
+**Note:** If neither `user_id` nor `company_id` is provided, the API uses the authenticated user's company. If both are provided, `company_id` takes precedence.
+
+**Response (200 OK):**
+```json
+{
+  "exists": true,
+  "warehouse_code": "WH-001",
+  "company_id": 1,
+  "company_name": "My Company"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Missing warehouse_code or validation errors
+- `401 Unauthorized`: Missing or invalid authentication token
+- `404 Not Found`: User or company not found (when user_id or company_id is provided)
+
+**Use Case:**
+Check if a warehouse code is already taken before attempting to create a new warehouse. Useful for form validation in the frontend to provide immediate feedback to users.
+
+**Examples:**
+
+1. **Using authenticated user's company:**
+   ```
+   POST /api/v1/masterdata/warehouses/check-code/
+   {
+     "warehouse_code": "WH-001"
+   }
+   ```
+
+2. **Using specific company:**
+   ```
+   POST /api/v1/masterdata/warehouses/check-code/
+   {
+     "warehouse_code": "WH-001",
+     "company_id": 1
+   }
+   ```
+
+3. **Using user ID:**
+   ```
+   POST /api/v1/masterdata/warehouses/check-code/
+   {
+     "warehouse_code": "WH-001",
+     "user_id": 5
+   }
+   ```
+
+4. **Using GET with query parameters:**
+   ```
+   GET /api/v1/masterdata/warehouses/check-code/?warehouse_code=WH-001&company_id=1
+   ```
+
+---
+
 ## Error Response Format
 
 All error responses follow this format:

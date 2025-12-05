@@ -4,6 +4,7 @@ Serializers for masterdata app - warehouse and product management.
 
 from rest_framework import serializers
 from .models import Warehouse
+from accounts.models import Company, User
 
 
 class WarehouseSerializer(serializers.ModelSerializer):
@@ -64,3 +65,36 @@ class WarehouseSerializer(serializers.ModelSerializer):
 
         validated_data["company"] = user.company
         return super().create(validated_data)
+
+
+class WarehouseCodeCheckSerializer(serializers.Serializer):
+    """Serializer for checking warehouse code existence."""
+
+    warehouse_code = serializers.CharField(
+        max_length=50, required=True, help_text="Warehouse code to check"
+    )
+    user_id = serializers.IntegerField(
+        required=False, allow_null=True, help_text="User ID (optional if authenticated)"
+    )
+    company_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Company ID (optional if authenticated)",
+    )
+
+    def validate(self, attrs):
+        """Validate that either user_id or company_id is provided, or user is authenticated."""
+        warehouse_code = attrs.get("warehouse_code")
+        user_id = attrs.get("user_id")
+        company_id = attrs.get("company_id")
+
+        if not warehouse_code:
+            raise serializers.ValidationError(
+                {"warehouse_code": "Warehouse code is required."}
+            )
+
+        # If both user_id and company_id are provided, company_id takes precedence
+        if user_id and company_id:
+            attrs.pop("user_id")  # Remove user_id, use company_id
+
+        return attrs
