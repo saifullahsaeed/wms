@@ -39,13 +39,21 @@ class WarehouseSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "company_id", "created_at", "updated_at"]
 
     def validate_code(self, value):
-        """Validate warehouse code is unique."""
+        """Validate warehouse code is unique within the company."""
         user = self.context["request"].user
+
+        # Check if user has a company
+        if not user.company:
+            raise serializers.ValidationError(
+                "User must be associated with a company to create warehouses."
+            )
+
         company = user.company
 
         # Check if code already exists for this company
         queryset = Warehouse.objects.filter(company=company, code=value)
         if self.instance:
+            # Exclude current instance when updating
             queryset = queryset.exclude(pk=self.instance.pk)
 
         if queryset.exists():

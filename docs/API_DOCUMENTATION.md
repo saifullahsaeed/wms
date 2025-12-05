@@ -354,7 +354,127 @@ Get complete company information for the current logged-in user. Useful for disp
 
 ---
 
+### 9. Get Team Members
+**GET** `/accounts/team/`
+
+**Authentication:** Required
+
+**Query Parameters:**
+- `search` (optional): Search by email, first name, last name, or username (case-insensitive)
+- `role` (optional): Filter by role ID (from Role model) or legacy role name (`admin`, `manager`, `operator`, `viewer`)
+- `page` (optional): Page number for pagination (default: 1)
+- `page_size` (optional): Number of results per page (default: 20)
+
+**Response (200 OK):**
+```json
+{
+  "count": 15,
+  "next": "http://example.com/api/v1/accounts/team/?page=2",
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "username": "john.doe",
+      "email": "john.doe@example.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "full_name": "John Doe",
+      "employee_code": "EMP001",
+      "job_title": "Warehouse Manager",
+      "phone": "+1234567890",
+      "mobile": "+1234567891",
+      "is_warehouse_operator": true,
+      "is_active": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "date_joined": "2024-01-01T00:00:00Z",
+      "last_login": "2024-01-15T10:30:00Z",
+      "roles": [
+        {
+          "warehouse_id": 1,
+          "warehouse_code": "WH-001",
+          "warehouse_name": "Main Warehouse",
+          "role_id": 2,
+          "role_name": "Manager",
+          "role_type": "custom",
+          "is_primary": true
+        },
+        {
+          "warehouse_id": 2,
+          "warehouse_code": "WH-002",
+          "warehouse_name": "Secondary Warehouse",
+          "role_name": "operator",
+          "role_type": "legacy",
+          "is_primary": false
+        }
+      ],
+      "primary_warehouse": {
+        "warehouse_id": 1,
+        "warehouse_code": "WH-001",
+        "warehouse_name": "Main Warehouse",
+        "role": "Manager"
+      }
+    }
+  ]
+}
+```
+
+**Field Descriptions:**
+- `roles`: Array of all warehouse assignments with role information
+  - `role_type`: `"custom"` for new Role system, `"legacy"` for legacy role strings, `null` if no role
+  - `role_id`: Only present for custom roles
+  - `role_name`: Role name (from Role model or legacy role string)
+- `primary_warehouse`: The warehouse marked as primary for this user (if any)
+
+**Examples:**
+
+1. **Get all team members:**
+   ```
+   GET /api/v1/accounts/team/
+   ```
+
+2. **Search by name or email:**
+   ```
+   GET /api/v1/accounts/team/?search=john
+   ```
+
+3. **Filter by role ID (custom role):**
+   ```
+   GET /api/v1/accounts/team/?role=2
+   ```
+
+4. **Filter by legacy role:**
+   ```
+   GET /api/v1/accounts/team/?role=manager
+   ```
+
+5. **Combine search and role filter:**
+   ```
+   GET /api/v1/accounts/team/?search=john&role=manager
+   ```
+
+6. **With pagination:**
+   ```
+   GET /api/v1/accounts/team/?page=2&page_size=10
+   ```
+
+**Error Responses:**
+- `401 Unauthorized`: Missing or invalid authentication token
+- `400 Bad Request`: Invalid query parameters
+
+**Use Case:**
+Get a paginated list of all employees in the company. Useful for team management, user administration, and displaying employee directories. Search and filter capabilities help find specific team members quickly.
+
+**Note:** 
+- Users can only see team members from their own company
+- Role filtering works with both the new Role system (by role ID) and legacy role strings
+- Search is case-insensitive and matches email, first name, last name, full name, or username
+
+---
+
 ## Onboarding APIs
+
+### 10. Check Onboarding Status
 
 ### 9. Check Onboarding Status
 **GET** `/accounts/onboarding/status/`
@@ -386,7 +506,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 10. Update Company Onboarding Info
+### 11. Update Company Onboarding Info
 **PATCH** `/accounts/onboarding/`
 
 **Authentication:** Required
@@ -448,7 +568,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ## Warehouse APIs
 
-### 11. List Warehouses
+### 12. List Warehouses
 **GET** `/masterdata/warehouses/`
 
 **Authentication:** Required
@@ -500,7 +620,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 12. Create Warehouse
+### 13. Create Warehouse
 **POST** `/masterdata/warehouses/`
 
 **Authentication:** Required
@@ -552,7 +672,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 13. Get Warehouse Details
+### 14. Get Warehouse Details
 **GET** `/masterdata/warehouses/{id}/`
 
 **Authentication:** Required
@@ -574,7 +694,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 14. Update Warehouse
+### 15. Update Warehouse
 **PUT** `/masterdata/warehouses/{id}/` - Full update
 **PATCH** `/masterdata/warehouses/{id}/` - Partial update
 
@@ -606,7 +726,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 15. Delete Warehouse
+### 16. Delete Warehouse
 **DELETE** `/masterdata/warehouses/{id}/`
 
 **Authentication:** Required
@@ -618,7 +738,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 16. Check Warehouse Code Availability
+### 17. Check Warehouse Code Availability
 **POST** `/masterdata/warehouses/check-code/`
 **GET** `/masterdata/warehouses/check-code/`
 

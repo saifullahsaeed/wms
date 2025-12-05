@@ -12,6 +12,7 @@ from .views import (
     RegisterView,
     UserMeView,
     UserProfileView,
+    TeamListView,
     change_password,
     logout,
     onboarding_status,
@@ -31,6 +32,8 @@ urlpatterns = [
     path("auth/change-password/", change_password, name="change_password"),
     # Company endpoints
     path("company/", CompanyView.as_view(), name="company"),
+    # Team management endpoints
+    path("team/", TeamListView.as_view(), name="team-list"),
     # Company onboarding endpoints
     path("onboarding/", CompanyOnboardingView.as_view(), name="onboarding"),
     path("onboarding/status/", onboarding_status, name="onboarding_status"),

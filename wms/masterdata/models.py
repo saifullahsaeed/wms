@@ -17,8 +17,7 @@ class Warehouse(models.Model):
     # Identity
     code = models.CharField(
         max_length=50,
-        unique=True,
-        help_text="Short unique code for this warehouse (e.g. WH-01, KHI-01).",
+        help_text="Short unique code for this warehouse (e.g. WH-01, KHI-01). Unique per company.",
     )
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)

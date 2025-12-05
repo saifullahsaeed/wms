@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 
-from .models import Company, User, UserWarehouse
+from .models import Company, User, UserWarehouse, Role
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -469,3 +469,105 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data["user"] = UserSerializer(user).data
 
         return data
+
+
+class TeamMemberSerializer(serializers.ModelSerializer):
+    """Serializer for team members list with role information."""
+
+    company_name = serializers.CharField(source="company.name", read_only=True)
+    full_name = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
+    primary_warehouse = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "full_name",
+            "employee_code",
+            "job_title",
+            "phone",
+            "mobile",
+            "is_warehouse_operator",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "date_joined",
+            "last_login",
+            "roles",
+            "primary_warehouse",
+        ]
+        read_only_fields = [
+            "id",
+            "username",
+            "date_joined",
+            "last_login",
+            "roles",
+            "primary_warehouse",
+        ]
+
+    def get_full_name(self, obj):
+        """Get full name of the user."""
+        if obj.first_name and obj.last_name:
+            return f"{obj.first_name} {obj.last_name}"
+        elif obj.first_name:
+            return obj.first_name
+        elif obj.last_name:
+            return obj.last_name
+        return obj.username
+
+    def get_roles(self, obj):
+        """Get all roles assigned to user across warehouses."""
+        assignments = UserWarehouse.objects.filter(
+            user=obj, is_active=True
+        ).select_related("role", "warehouse")
+
+        roles = []
+        for assignment in assignments:
+            role_info = {
+                "warehouse_id": assignment.warehouse.id,
+                "warehouse_code": assignment.warehouse.code,
+                "warehouse_name": assignment.warehouse.name,
+                "is_primary": assignment.is_primary,
+            }
+
+            if assignment.role:
+                # New role system
+                role_info["role_id"] = assignment.role.id
+                role_info["role_name"] = assignment.role.name
+                role_info["role_type"] = "custom"
+            elif assignment.legacy_role:
+                # Legacy role system
+                role_info["role_name"] = assignment.legacy_role
+                role_info["role_type"] = "legacy"
+            else:
+                role_info["role_name"] = None
+                role_info["role_type"] = None
+
+            roles.append(role_info)
+
+        return roles
+
+    def get_primary_warehouse(self, obj):
+        """Get primary warehouse assignment."""
+        primary_assignment = UserWarehouse.objects.filter(
+            user=obj, is_active=True, is_primary=True
+        ).select_related("warehouse", "role").first()
+
+        if not primary_assignment:
+            return None
+
+        return {
+            "warehouse_id": primary_assignment.warehouse.id,
+            "warehouse_code": primary_assignment.warehouse.code,
+            "warehouse_name": primary_assignment.warehouse.name,
+            "role": (
+                primary_assignment.role.name
+                if primary_assignment.role
+                else primary_assignment.legacy_role
+            ),
+        }

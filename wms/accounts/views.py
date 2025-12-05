@@ -9,6 +9,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from django.db.models import Q, Coalesce
+from django.db.models.functions import Concat
+from django.db.models import Value as V, CharField
 
 from .serializers import (
     CompanyOnboardingSerializer,
@@ -19,7 +22,9 @@ from .serializers import (
     UserCreateSerializer,
     UserUpdateSerializer,
     PasswordChangeSerializer,
+    TeamMemberSerializer,
 )
+from .models import UserWarehouse, Role
 
 User = get_user_model()
 
@@ -300,3 +305,86 @@ def logout(request):
             {"error": "Invalid token or token already blacklisted."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class TeamListView(generics.ListAPIView):
+    """
+    Get paginated list of team members (employees) for the current user's company.
+
+    GET /api/v1/accounts/team/
+
+    Query Parameters:
+    - search: Search by email, first_name, or last_name
+    - role: Filter by role ID (from Role model) or legacy role name (admin, manager, operator, viewer)
+    - page: Page number for pagination
+    - page_size: Number of results per page
+    """
+
+    serializer_class = TeamMemberSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """Return users from the current user's company with filtering and search."""
+        user = self.request.user
+
+        if not user.company:
+            return User.objects.none()
+
+        # Base queryset: all users in the same company
+        queryset = User.objects.filter(company=user.company).select_related("company")
+
+        # Search functionality - search by email, first_name, or last_name
+        search_query = self.request.query_params.get("search", "").strip()
+        if search_query:
+            # Search in email, first_name, last_name, or username
+            # Use Coalesce to handle null values in name fields
+            queryset = queryset.annotate(
+                full_name=Concat(
+                    Coalesce("first_name", V("")),
+                    V(" "),
+                    Coalesce("last_name", V("")),
+                    output_field=CharField(),
+                )
+            )
+            # Search in email, first_name, last_name, full_name, or username
+            queryset = queryset.filter(
+                Q(email__icontains=search_query)
+                | Q(first_name__icontains=search_query)
+                | Q(last_name__icontains=search_query)
+                | Q(full_name__icontains=search_query)
+                | Q(username__icontains=search_query)
+            )
+
+        # Filter by role
+        role_filter = self.request.query_params.get("role", "").strip()
+        if role_filter:
+            # Try to find by role ID first (new system)
+            try:
+                role_id = int(role_filter)
+                role_obj = Role.objects.filter(id=role_id, company=user.company).first()
+                if role_obj:
+                    # Filter users who have this role in any warehouse assignment
+                    user_ids = UserWarehouse.objects.filter(
+                        role=role_obj, is_active=True
+                    ).values_list("user_id", flat=True)
+                    queryset = queryset.filter(id__in=user_ids)
+                else:
+                    # Role ID not found, return empty queryset
+                    return User.objects.none()
+            except ValueError:
+                # Not a number, try legacy role names
+                legacy_roles = [choice[0] for choice in UserWarehouse.ROLE_CHOICES]
+                if role_filter.lower() in legacy_roles:
+                    # Filter users who have this legacy role in any warehouse assignment
+                    user_ids = UserWarehouse.objects.filter(
+                        legacy_role=role_filter.lower(), is_active=True
+                    ).values_list("user_id", flat=True)
+                    queryset = queryset.filter(id__in=user_ids)
+                else:
+                    # Invalid role, return empty queryset
+                    return User.objects.none()
+
+        # Order by date_joined (newest first) or by name
+        queryset = queryset.order_by("-date_joined", "first_name", "last_name")
+
+        return queryset
