@@ -3,6 +3,7 @@
 Base URL: `/api/v1`
 
 All endpoints require authentication unless specified otherwise. Use JWT Bearer token in the Authorization header:
+
 ```
 Authorization: Bearer <access_token>
 ```
@@ -12,19 +13,21 @@ Authorization: Bearer <access_token>
 ## Authentication APIs
 
 ### 1. Register (Signup)
+
 **POST** `/accounts/auth/register/`
 
 **Authentication:** Not required (public endpoint)
 
 **Request Body:**
+
 ```json
 {
-  "company_name": "My Company",          // Required
-  "username": "owner",                    // Required
-  "email": "owner@example.com",          // Required
-  "password": "SecurePass123!",           // Required
-  "password_confirm": "SecurePass123!",   // Required
-  
+  "company_name": "My Company", // Required
+  "username": "owner", // Required
+  "email": "owner@example.com", // Required
+  "password": "SecurePass123!", // Required
+  "password_confirm": "SecurePass123!", // Required
+
   // Optional company fields
   "company_legal_name": "My Company Inc",
   "company_email": "info@company.com",
@@ -38,7 +41,7 @@ Authorization: Bearer <access_token>
   "company_country": "USA",
   "company_tax_id": "TAX123",
   "company_registration_number": "REG456",
-  
+
   // Optional user fields
   "first_name": "John",
   "last_name": "Doe",
@@ -52,6 +55,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "user": {
@@ -79,24 +83,28 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Validation errors (passwords don't match, company name exists, etc.)
 
 ---
 
 ### 2. Login
+
 **POST** `/accounts/auth/login/`
 
 **Authentication:** Not required (public endpoint)
 
 **Request Body:**
+
 ```json
 {
-  "email": "owner@example.com",    // Required
-  "password": "SecurePass123!"      // Required
+  "email": "owner@example.com", // Required
+  "password": "SecurePass123!" // Required
 }
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
@@ -129,16 +137,19 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Invalid credentials, user inactive, or no company assigned
 
 ---
 
 ### 3. Refresh Token
+
 **POST** `/accounts/auth/refresh/`
 
 **Authentication:** Not required (public endpoint)
 
 **Request Body:**
+
 ```json
 {
   "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
@@ -146,6 +157,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "access": "eyJ0eXAiOiJKV1QiLCJhbGc..."
@@ -155,11 +167,13 @@ Authorization: Bearer <access_token>
 ---
 
 ### 4. Get Current User (Me)
+
 **GET** `/accounts/auth/me/`
 
 **Authentication:** Required
 
 **Response (200 OK):**
+
 ```json
 {
   "id": 1,
@@ -194,11 +208,13 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized`: Invalid or missing token
 
 ---
 
 ### 5. Get/Update User Profile
+
 **GET** `/accounts/auth/profile/` - Get profile
 **PUT** `/accounts/auth/profile/` - Full update
 **PATCH** `/accounts/auth/profile/` - Partial update
@@ -206,6 +222,7 @@ Authorization: Bearer <access_token>
 **Authentication:** Required
 
 **Request Body (PATCH):**
+
 ```json
 {
   "email": "newemail@example.com",
@@ -224,6 +241,7 @@ Authorization: Bearer <access_token>
 **Note:** The following fields are read-only and cannot be updated: `id`, `username`, `company_id`, `company_name`, `is_active`, `is_staff`, `is_superuser`, `date_joined`, `last_login`, `warehouses`.
 
 **Response (200 OK):**
+
 ```json
 {
   "id": 1,
@@ -258,17 +276,20 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Validation errors
 - `401 Unauthorized`: Missing or invalid authentication token
 
 ---
 
 ### 6. Change Password
+
 **POST** `/accounts/auth/change-password/`
 
 **Authentication:** Required
 
 **Request Body:**
+
 ```json
 {
   "old_password": "OldPass123!",
@@ -278,6 +299,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "message": "Password changed successfully."
@@ -285,16 +307,19 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Old password incorrect, passwords don't match, or validation errors
 
 ---
 
 ### 7. Logout
+
 **POST** `/accounts/auth/logout/`
 
 **Authentication:** Required
 
 **Request Body:**
+
 ```json
 {
   "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
@@ -302,6 +327,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "message": "Successfully logged out."
@@ -309,6 +335,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Missing refresh token or invalid token
   - `{"error": "Refresh token is required."}` - When refresh token is missing
   - `{"error": "Invalid token or token already blacklisted."}` - When token is invalid or already blacklisted
@@ -318,11 +345,13 @@ Authorization: Bearer <access_token>
 ## Company APIs
 
 ### 8. Get My Company
+
 **GET** `/accounts/company/`
 
 **Authentication:** Required
 
 **Response (200 OK):**
+
 ```json
 {
   "id": 1,
@@ -346,6 +375,7 @@ Authorization: Bearer <access_token>
 ```
 
 **Error Responses:**
+
 - `401 Unauthorized`: Missing or invalid authentication token
 - `404 Not Found`: User is not associated with a company
 
@@ -355,17 +385,20 @@ Get complete company information for the current logged-in user. Useful for disp
 ---
 
 ### 9. Get Team Members
+
 **GET** `/accounts/team/`
 
 **Authentication:** Required
 
 **Query Parameters:**
+
 - `search` (optional): Search by email, first name, last name, or username (case-insensitive)
 - `role` (optional): Filter by role ID (from Role model) or legacy role name (`admin`, `manager`, `operator`, `viewer`)
 - `page` (optional): Page number for pagination (default: 1)
 - `page_size` (optional): Number of results per page (default: 20)
 
 **Response (200 OK):**
+
 ```json
 {
   "count": 15,
@@ -389,30 +422,48 @@ Get complete company information for the current logged-in user. Useful for disp
       "is_superuser": false,
       "date_joined": "2024-01-01T00:00:00Z",
       "last_login": "2024-01-15T10:30:00Z",
-      "roles": [
+      "warehouses": [
         {
           "warehouse_id": 1,
           "warehouse_code": "WH-001",
           "warehouse_name": "Main Warehouse",
-          "role_id": 2,
-          "role_name": "Manager",
-          "role_type": "custom",
-          "is_primary": true
+          "warehouse_type": "main",
+          "is_active": true,
+          "is_primary": true,
+          "assigned_at": "2024-01-01T00:00:00Z",
+          "role": {
+            "id": 2,
+            "name": "Manager",
+            "type": "custom",
+            "description": "Warehouse manager with full access"
+          }
         },
         {
           "warehouse_id": 2,
           "warehouse_code": "WH-002",
           "warehouse_name": "Secondary Warehouse",
-          "role_name": "operator",
-          "role_type": "legacy",
-          "is_primary": false
+          "warehouse_type": "store",
+          "is_active": true,
+          "is_primary": false,
+          "assigned_at": "2024-01-05T00:00:00Z",
+          "role": {
+            "name": "operator",
+            "type": "legacy",
+            "display_name": "Operator"
+          }
         }
       ],
       "primary_warehouse": {
         "warehouse_id": 1,
         "warehouse_code": "WH-001",
         "warehouse_name": "Main Warehouse",
-        "role": "Manager"
+        "warehouse_type": "main",
+        "role": {
+          "id": 2,
+          "name": "Manager",
+          "type": "custom",
+          "description": "Warehouse manager with full access"
+        }
       }
     }
   ]
@@ -420,35 +471,49 @@ Get complete company information for the current logged-in user. Useful for disp
 ```
 
 **Field Descriptions:**
-- `roles`: Array of all warehouse assignments with role information
-  - `role_type`: `"custom"` for new Role system, `"legacy"` for legacy role strings, `null` if no role
-  - `role_id`: Only present for custom roles
-  - `role_name`: Role name (from Role model or legacy role string)
-- `primary_warehouse`: The warehouse marked as primary for this user (if any)
+
+- `warehouses`: Array of all warehouse assignments with role information
+  - `warehouse_id`: Unique warehouse identifier
+  - `warehouse_code`: Short code for the warehouse
+  - `warehouse_name`: Full name of the warehouse
+  - `warehouse_type`: Type of warehouse (`main`, `store`, `3pl`, `other`)
+  - `is_active`: Whether the warehouse is active
+  - `is_primary`: Whether this is the user's primary warehouse
+  - `assigned_at`: ISO timestamp when user was assigned to this warehouse
+  - `role`: Role information object
+    - For custom roles: `{"id": 2, "name": "Manager", "type": "custom", "description": "..."}`
+    - For legacy roles: `{"name": "admin", "type": "legacy", "display_name": "Admin"}`
+    - If no role: `null`
+- `primary_warehouse`: The warehouse marked as primary for this user (same structure as warehouses array items, or `null` if none)
 
 **Examples:**
 
 1. **Get all team members:**
+
    ```
    GET /api/v1/accounts/team/
    ```
 
 2. **Search by name or email:**
+
    ```
    GET /api/v1/accounts/team/?search=john
    ```
 
 3. **Filter by role ID (custom role):**
+
    ```
    GET /api/v1/accounts/team/?role=2
    ```
 
 4. **Filter by legacy role:**
+
    ```
    GET /api/v1/accounts/team/?role=manager
    ```
 
 5. **Combine search and role filter:**
+
    ```
    GET /api/v1/accounts/team/?search=john&role=manager
    ```
@@ -459,29 +524,370 @@ Get complete company information for the current logged-in user. Useful for disp
    ```
 
 **Error Responses:**
+
 - `401 Unauthorized`: Missing or invalid authentication token
 - `400 Bad Request`: Invalid query parameters
 
 **Use Case:**
 Get a paginated list of all employees in the company. Useful for team management, user administration, and displaying employee directories. Search and filter capabilities help find specific team members quickly.
 
-**Note:** 
+**Note:**
+
 - Users can only see team members from their own company
 - Role filtering works with both the new Role system (by role ID) and legacy role strings
 - Search is case-insensitive and matches email, first name, last name, full name, or username
 
 ---
 
+### 10. Add Team Member
+
+**POST** `/accounts/team/`
+
+**Authentication:** Required
+
+**Permission:** Only company owners (`is_staff=True`) can add team members
+
+**Request Body:**
+
+```json
+{
+  "username": "jane.smith", // Required
+  "email": "jane.smith@example.com", // Required
+  "password": "SecurePass123!", // Required
+  "password_confirm": "SecurePass123!", // Required
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "employee_code": "EMP002",
+  "job_title": "Warehouse Operator",
+  "phone": "+1234567890",
+  "mobile": "+1234567891",
+  "language": "en",
+  "time_zone": "America/New_York",
+  "is_warehouse_operator": true
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "user": {
+    "id": 2,
+    "username": "jane.smith",
+    "email": "jane.smith@example.com",
+    "first_name": "Jane",
+    "last_name": "Smith",
+    "full_name": "Jane Smith",
+    "company_name": "My Company",
+    "employee_code": "EMP002",
+    "job_title": "Warehouse Operator",
+    "phone": "+1234567890",
+    "mobile": "+1234567891",
+    "is_warehouse_operator": true,
+    "is_active": true,
+    "is_staff": false,
+    "is_superuser": false,
+    "date_joined": "2024-01-15T10:00:00Z",
+    "last_login": null,
+    "warehouses": [],
+    "primary_warehouse": null
+  },
+  "message": "Team member added successfully."
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Validation errors (passwords don't match, email/username already exists, etc.)
+- `401 Unauthorized`: Missing or invalid authentication token
+- `403 Forbidden`: Only company owners can add team members
+- `404 Not Found`: User is not associated with a company
+
+**Note:**
+
+- The new user will be automatically assigned to the same company as the authenticated user
+- Only users with `is_staff=True` (company owners) can add team members
+
+---
+
+### 11. Get Team Member Details
+
+**GET** `/accounts/team/{id}/`
+
+**Authentication:** Required
+
+**Response (200 OK):**
+
+Same structure as team member in the list response (see Section 9).
+
+**Error Responses:**
+
+- `401 Unauthorized`: Missing or invalid authentication token
+- `404 Not Found`: Team member not found or belongs to another company
+
+---
+
+### 12. Update Team Member
+
+**PUT** `/accounts/team/{id}/` - Full update
+**PATCH** `/accounts/team/{id}/` - Partial update
+
+**Authentication:** Required
+
+**Permission:** Only company owners (`is_staff=True`) can update team members
+
+**Request Body (PATCH):**
+
+```json
+{
+  "email": "newemail@example.com",
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "employee_code": "EMP003",
+  "job_title": "Senior Operator",
+  "phone": "+1987654321",
+  "mobile": "+1987654322",
+  "language": "es",
+  "time_zone": "America/Los_Angeles",
+  "is_warehouse_operator": false
+}
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "id": 2,
+  "username": "jane.smith",
+  "email": "newemail@example.com",
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "full_name": "Jane Smith",
+  "company_name": "My Company"
+  // ... other fields
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Validation errors
+- `401 Unauthorized`: Missing or invalid authentication token
+- `403 Forbidden`: Only company owners can update team members
+- `404 Not Found`: Team member not found or belongs to another company
+
+**Note:**
+
+- The following fields cannot be updated via this endpoint: `id`, `username`, `company_name`, `is_active`, `is_staff`, `is_superuser`, `date_joined`, `last_login`, `warehouses`, `primary_warehouse`
+- Only users with `is_staff=True` (company owners) can update team members
+
+---
+
+### 13. Remove Team Member
+
+**DELETE** `/accounts/team/{id}/`
+
+**Authentication:** Required
+
+**Permission:** Only company owners (`is_staff=True`) can remove team members
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "Team member removed successfully."
+}
+```
+
+**Error Responses:**
+
+- `401 Unauthorized`: Missing or invalid authentication token
+- `403 Forbidden`: Only company owners can remove team members, or cannot remove yourself from the team
+- `404 Not Found`: Team member not found or belongs to another company
+
+**Note:**
+
+- This endpoint deactivates the user (`is_active = false`) instead of deleting them. This preserves data integrity and allows for reactivation if needed
+- Only users with `is_staff=True` (company owners) can remove team members
+- Users cannot remove themselves from the team
+
+---
+
+### 14. Get User Permissions
+
+**GET** `/accounts/auth/permissions/`
+
+**Authentication:** Required
+
+**Query Parameters:**
+
+- `warehouse_id` (optional): Get permissions for a specific warehouse only
+
+**Response (200 OK):**
+
+```json
+{
+  "is_company_owner": true,
+  "can_manage_team": true,
+  "warehouses": [
+    {
+      "warehouse_id": 1,
+      "warehouse_code": "WH-001",
+      "warehouse_name": "Main Warehouse",
+      "can_access": true,
+      "can_manage_warehouse": true,
+      "can_pick_orders": true,
+      "can_putaway": true,
+      "can_view_inventory": true,
+      "can_manage_inventory": true,
+      "can_view_orders": true,
+      "can_manage_orders": true,
+      "role": {
+        "id": 1,
+        "name": "Admin",
+        "type": "custom",
+        "description": "Full access to all warehouse operations"
+      }
+    }
+  ]
+}
+```
+
+**Field Descriptions:**
+
+- `is_company_owner`: `true` if user is company owner (`is_staff=True`)
+- `can_manage_team`: `true` if user can add/remove team members (only owners)
+- `warehouses`: Array of warehouse permissions
+  - `can_access`: Whether user can access this warehouse
+  - `can_manage_warehouse`: Can manage warehouse settings
+  - `can_pick_orders`: Can pick orders (requires operator role + is_warehouse_operator flag)
+  - `can_putaway`: Can perform putaway operations
+  - `can_view_inventory`: Can view inventory
+  - `can_manage_inventory`: Can manage inventory (adjustments, counts)
+  - `can_view_orders`: Can view orders
+  - `can_manage_orders`: Can create and manage orders
+  - `role`: Role information (custom or legacy)
+
+**Examples:**
+
+1. **Get permissions for all warehouses:**
+
+   ```
+   GET /api/v1/accounts/auth/permissions/
+   ```
+
+2. **Get permissions for specific warehouse:**
+
+   ```
+   GET /api/v1/accounts/auth/permissions/?warehouse_id=1
+   ```
+
+**Error Responses:**
+
+- `401 Unauthorized`: Missing or invalid authentication token
+- `404 Not Found`: Warehouse not found (when warehouse_id is provided)
+
+**Use Case:**
+
+Use this endpoint to get all user permissions for the frontend. The frontend can use these boolean flags to conditionally show/hide features, buttons, and menu items based on the user's permissions in each warehouse.
+
+---
+
+### 15. Assign User to Warehouse
+
+**POST** `/accounts/warehouses/{warehouse_id}/assign-user/`
+
+**Authentication:** Required
+
+**Permission:** Only company owners (`is_staff=True`) can assign users to warehouses
+
+**Request Body:**
+
+```json
+{
+  "user_id": 2, // Required
+  "role_id": 1, // Optional - custom role ID
+  "legacy_role": "operator", // Optional - legacy role (used if role_id not provided)
+  "is_primary": false // Optional - set as user's primary warehouse
+}
+```
+
+**Response (201 Created):**
+
+```json
+{
+  "message": "User assigned to warehouse successfully.",
+  "assignment": {
+    "user_id": 2,
+    "user_email": "jane.smith@example.com",
+    "warehouse_id": 1,
+    "warehouse_code": "WH-001",
+    "role": {
+      "id": 1,
+      "name": "Admin",
+      "type": "custom"
+    },
+    "is_primary": false
+  }
+}
+```
+
+**Error Responses:**
+
+- `400 Bad Request`: Validation errors (missing user_id, invalid role, etc.)
+- `401 Unauthorized`: Missing or invalid authentication token
+- `403 Forbidden`: Only company owners can assign users to warehouses
+- `404 Not Found`: Warehouse, user, or role not found
+
+**Note:**
+
+- Either `role_id` (custom role) or `legacy_role` must be provided
+- User and warehouse must belong to the same company
+- Role must belong to the same company
+- If `is_primary` is `true`, this warehouse becomes the user's primary warehouse
+
+---
+
+### 16. Remove User from Warehouse
+
+**DELETE** `/accounts/warehouses/{warehouse_id}/users/{user_id}/`
+
+**Authentication:** Required
+
+**Permission:** Only company owners (`is_staff=True`) can remove users from warehouses
+
+**Response (200 OK):**
+
+```json
+{
+  "message": "User removed from warehouse successfully."
+}
+```
+
+**Error Responses:**
+
+- `401 Unauthorized`: Missing or invalid authentication token
+- `403 Forbidden`: Only company owners can remove users from warehouses
+- `404 Not Found`: Warehouse, user, or assignment not found
+
+**Note:**
+
+- This endpoint deactivates the warehouse assignment (`is_active = false`) instead of deleting it
+- User and warehouse must belong to the same company
+
+---
+
 ## Onboarding APIs
 
-### 10. Check Onboarding Status
+### 17. Check Onboarding Status
 
 ### 9. Check Onboarding Status
+
 **GET** `/accounts/onboarding/status/`
 
 **Authentication:** Required
 
 **Response (200 OK):**
+
 ```json
 {
   "is_complete": false,
@@ -493,6 +899,7 @@ Get a paginated list of all employees in the company. Useful for team management
 ```
 
 **Field Descriptions:**
+
 - `is_complete`: `true` when both company info is complete AND at least one warehouse exists
 - `company_info_complete`: `true` when company has `email` and `country` set
 - `has_warehouse`: `true` when at least one active warehouse exists
@@ -501,23 +908,26 @@ Get a paginated list of all employees in the company. Useful for team management
 
 **Use Case:**
 Check this endpoint after signup to determine if user needs to complete onboarding. If `is_complete` is `false`, guide user through:
+
 1. Completing company info (if `company_info_complete` is `false`)
 2. Creating first warehouse (if `has_warehouse` is `false`)
 
 ---
 
-### 11. Update Company Onboarding Info
+### 18. Update Company Onboarding Info
+
 **PATCH** `/accounts/onboarding/`
 
 **Authentication:** Required
 
 **Request Body:**
+
 ```json
 {
   // Required fields (if not already set)
-  "email": "company@example.com",        // Required for onboarding
-  "country": "United States",            // Required for onboarding
-  
+  "email": "company@example.com", // Required for onboarding
+  "country": "United States", // Required for onboarding
+
   // Optional fields
   "legal_name": "My Company Inc LLC",
   "phone": "+1234567890",
@@ -533,6 +943,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "company": {
@@ -559,6 +970,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Missing required fields (`email` or `country` if not already set)
 - `404 Not Found`: User not associated with a company
 
@@ -568,16 +980,19 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ## Warehouse APIs
 
-### 12. List Warehouses
+### 19. List Warehouses
+
 **GET** `/masterdata/warehouses/`
 
 **Authentication:** Required
 
 **Query Parameters:**
+
 - `page` (optional): Page number for pagination
 - `page_size` (optional): Number of results per page
 
 **Response (200 OK):**
+
 ```json
 {
   "count": 2,
@@ -609,7 +1024,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
     {
       "id": 2,
       "code": "WH-002",
-      "name": "Secondary Warehouse",
+      "name": "Secondary Warehouse"
       // ... same structure
     }
   ]
@@ -620,17 +1035,19 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 13. Create Warehouse
+### 20. Create Warehouse
+
 **POST** `/masterdata/warehouses/`
 
 **Authentication:** Required
 
 **Request Body:**
+
 ```json
 {
-  "code": "WH-001",                    // Required, unique per company
-  "name": "Main Warehouse",            // Required
-  
+  "code": "WH-001", // Required, unique per company
+  "name": "Main Warehouse", // Required
+
   // Optional fields
   "description": "Primary distribution center",
   "address_line1": "123 Warehouse St",
@@ -642,7 +1059,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
   "time_zone": "America/New_York",
   "latitude": "40.712800",
   "longitude": "-74.006000",
-  "type": "main",                      // Options: "main", "store", "3pl", "other"
+  "type": "main", // Options: "main", "store", "3pl", "other"
   "is_active": true,
   "allow_negative_stock": false,
   "uses_bins": true
@@ -650,6 +1067,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "warehouse": {
@@ -657,7 +1075,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
     "code": "WH-001",
     "name": "Main Warehouse",
     "description": "Primary distribution center",
-    "company_id": 1,
+    "company_id": 1
     // ... all warehouse fields
   },
   "message": "Warehouse created successfully."
@@ -665,6 +1083,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Validation errors (duplicate code, invalid data)
 - `401 Unauthorized`: Not authenticated
 
@@ -672,35 +1091,40 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 
 ---
 
-### 14. Get Warehouse Details
+### 21. Get Warehouse Details
+
 **GET** `/masterdata/warehouses/{id}/`
 
 **Authentication:** Required
 
 **Response (200 OK):**
+
 ```json
 {
   "id": 1,
   "code": "WH-001",
   "name": "Main Warehouse",
   "description": "Primary distribution center",
-  "company_id": 1,
+  "company_id": 1
   // ... all warehouse fields
 }
 ```
 
 **Error Responses:**
+
 - `404 Not Found`: Warehouse not found or belongs to another company
 
 ---
 
-### 15. Update Warehouse
+### 22. Update Warehouse
+
 **PUT** `/masterdata/warehouses/{id}/` - Full update
 **PATCH** `/masterdata/warehouses/{id}/` - Partial update
 
 **Authentication:** Required
 
 **Request Body (PATCH):**
+
 ```json
 {
   "name": "Updated Warehouse Name",
@@ -710,23 +1134,26 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "id": 1,
   "code": "WH-001",
   "name": "Updated Warehouse Name",
-  "city": "Los Angeles",
+  "city": "Los Angeles"
   // ... all warehouse fields
 }
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Validation errors
 - `404 Not Found`: Warehouse not found or belongs to another company
 
 ---
 
-### 16. Delete Warehouse
+### 23. Delete Warehouse
+
 **DELETE** `/masterdata/warehouses/{id}/`
 
 **Authentication:** Required
@@ -734,26 +1161,30 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 **Response (204 No Content):** Empty response body
 
 **Error Responses:**
+
 - `404 Not Found`: Warehouse not found or belongs to another company
 
 ---
 
-### 17. Check Warehouse Code Availability
+### 24. Check Warehouse Code Availability
+
 **POST** `/masterdata/warehouses/check-code/`
 **GET** `/masterdata/warehouses/check-code/`
 
 **Authentication:** Required
 
 **Request Body (POST):**
+
 ```json
 {
-  "warehouse_code": "WH-001",    // Required
-  "user_id": 1,                  // Optional - if provided, uses this user's company
-  "company_id": 1                // Optional - if provided, checks this company directly
+  "warehouse_code": "WH-001", // Required
+  "user_id": 1, // Optional - if provided, uses this user's company
+  "company_id": 1 // Optional - if provided, checks this company directly
 }
 ```
 
 **Query Parameters (GET):**
+
 - `warehouse_code` (required): Warehouse code to check
 - `user_id` (optional): User ID - if provided, uses this user's company
 - `company_id` (optional): Company ID - if provided, checks this company directly
@@ -761,6 +1192,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 **Note:** If neither `user_id` nor `company_id` is provided, the API uses the authenticated user's company. If both are provided, `company_id` takes precedence.
 
 **Response (200 OK):**
+
 ```json
 {
   "exists": true,
@@ -771,6 +1203,7 @@ Check this endpoint after signup to determine if user needs to complete onboardi
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Missing warehouse_code or validation errors
 - `401 Unauthorized`: Missing or invalid authentication token
 - `404 Not Found`: User or company not found (when user_id or company_id is provided)
@@ -781,6 +1214,7 @@ Check if a warehouse code is already taken before attempting to create a new war
 **Examples:**
 
 1. **Using authenticated user's company:**
+
    ```
    POST /api/v1/masterdata/warehouses/check-code/
    {
@@ -789,6 +1223,7 @@ Check if a warehouse code is already taken before attempting to create a new war
    ```
 
 2. **Using specific company:**
+
    ```
    POST /api/v1/masterdata/warehouses/check-code/
    {
@@ -798,6 +1233,7 @@ Check if a warehouse code is already taken before attempting to create a new war
    ```
 
 3. **Using user ID:**
+
    ```
    POST /api/v1/masterdata/warehouses/check-code/
    {
@@ -825,6 +1261,7 @@ All error responses follow this format:
 ```
 
 **Example:**
+
 ```json
 {
   "email": ["This field is required."],
@@ -849,17 +1286,21 @@ All error responses follow this format:
 ## Authentication Flow
 
 1. **User Registration:**
+
    - POST `/accounts/auth/register/` → Returns `access` and `refresh` tokens
    - Store tokens securely (e.g., localStorage or httpOnly cookies)
 
 2. **User Login:**
+
    - POST `/accounts/auth/login/` → Returns `access` and `refresh` tokens
    - Store tokens securely
 
 3. **Making Authenticated Requests:**
+
    - Include `Authorization: Bearer <access_token>` header in all requests
 
 4. **Token Refresh:**
+
    - When access token expires (1 hour), use refresh token:
    - POST `/accounts/auth/refresh/` with `refresh` token → Get new `access` token
    - Refresh tokens expire after 7 days
@@ -872,10 +1313,12 @@ All error responses follow this format:
 ## Onboarding Flow
 
 1. **After Signup:**
+
    - User registers → Gets tokens
    - Check onboarding status: GET `/accounts/onboarding/status/`
 
 2. **If `is_complete: false`:**
+
    - If `company_info_complete: false`:
      - Show company onboarding form
      - PATCH `/accounts/onboarding/` with `email` and `country` (required)
@@ -892,6 +1335,7 @@ All error responses follow this format:
 ## CORS Configuration
 
 The API is configured to accept requests from:
+
 - `http://localhost:3000` (Next.js default dev port)
 - `http://127.0.0.1:3000`
 
@@ -910,6 +1354,64 @@ When the access token expires, use the refresh token to get a new access token. 
 
 ---
 
+## Role Management
+
+### Seeding Default Roles
+
+Use the management command to seed default roles with permissions for companies:
+
+```bash
+# Seed roles for all companies
+python manage.py seed_roles
+
+# Seed roles for a specific company by ID
+python manage.py seed_roles --company-id 1
+
+# Seed roles for a specific company by name
+python manage.py seed_roles --company-name "My Company"
+```
+
+**Default Roles Created:**
+
+1. **Admin** - Full access to all warehouse operations and management
+
+   - Can manage warehouses
+   - Can perform all operations (pick, putaway, manage orders)
+   - Can manage inventory
+   - Full warehouse CRUD access
+
+2. **Manager** - Can manage warehouse operations and inventory
+
+   - Can perform operations (pick, putaway, manage orders)
+   - Can manage inventory
+   - View-only warehouse access
+
+3. **Operator** - Can perform warehouse operations
+
+   - Can pick orders
+   - Can perform putaway
+   - Can view orders and inventory
+   - View-only warehouse access
+
+4. **Viewer** - Read-only access
+   - Can view orders
+   - Can view inventory
+   - Can view warehouse information
+
+**Note:** These roles are marked as system roles (`is_system_role=True`) and cannot be deleted. You can create additional custom roles through the admin interface or API.
+
+**Permission System:**
+
+- Users can have different roles in different warehouses
+- Permissions are checked per warehouse
+- Company owners (`is_staff=True`) can:
+  - Add/remove team members
+  - Assign users to warehouses
+  - Remove users from warehouses
+- Use the `/accounts/auth/permissions/` endpoint to get user permissions for frontend conditional rendering
+
+---
+
 ## Notes
 
 - All timestamps are in ISO 8601 format (UTC)
@@ -920,4 +1422,3 @@ When the access token expires, use the refresh token to get a new access token. 
 - Company email and country are required for onboarding completion
 - Access tokens expire after 1 hour - implement automatic token refresh in your frontend
 - Refresh tokens expire after 7 days - prompt user to re-login if refresh fails
-

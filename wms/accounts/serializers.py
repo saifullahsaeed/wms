@@ -7,6 +7,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
 
 from .models import Company, User, UserWarehouse, Role
+from masterdata.models import Warehouse
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -476,7 +477,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
 
     company_name = serializers.CharField(source="company.name", read_only=True)
     full_name = serializers.SerializerMethodField()
-    roles = serializers.SerializerMethodField()
+    warehouses = serializers.SerializerMethodField()
     primary_warehouse = serializers.SerializerMethodField()
 
     class Meta:
@@ -488,6 +489,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "full_name",
+            "company_name",
             "employee_code",
             "job_title",
             "phone",
@@ -498,7 +500,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
             "is_superuser",
             "date_joined",
             "last_login",
-            "roles",
+            "warehouses",
             "primary_warehouse",
         ]
         read_only_fields = [
@@ -506,7 +508,7 @@ class TeamMemberSerializer(serializers.ModelSerializer):
             "username",
             "date_joined",
             "last_login",
-            "roles",
+            "warehouses",
             "primary_warehouse",
         ]
 
@@ -520,54 +522,160 @@ class TeamMemberSerializer(serializers.ModelSerializer):
             return obj.last_name
         return obj.username
 
-    def get_roles(self, obj):
-        """Get all roles assigned to user across warehouses."""
-        assignments = UserWarehouse.objects.filter(
-            user=obj, is_active=True
-        ).select_related("role", "warehouse")
+    def get_warehouses(self, obj):
+        """Get all warehouse assignments with role information."""
+        assignments = (
+            UserWarehouse.objects.filter(user=obj, is_active=True)
+            .select_related("role", "warehouse")
+            .order_by("-is_primary", "warehouse__code")
+        )
 
-        roles = []
+        warehouses = []
         for assignment in assignments:
-            role_info = {
+            warehouse_info = {
                 "warehouse_id": assignment.warehouse.id,
                 "warehouse_code": assignment.warehouse.code,
                 "warehouse_name": assignment.warehouse.name,
+                "warehouse_type": assignment.warehouse.type,
+                "is_active": assignment.warehouse.is_active,
                 "is_primary": assignment.is_primary,
+                "assigned_at": (
+                    assignment.assigned_at.isoformat()
+                    if assignment.assigned_at
+                    else None
+                ),
             }
 
+            # Role information
             if assignment.role:
-                # New role system
-                role_info["role_id"] = assignment.role.id
-                role_info["role_name"] = assignment.role.name
-                role_info["role_type"] = "custom"
+                # New role system (custom role)
+                warehouse_info["role"] = {
+                    "id": assignment.role.id,
+                    "name": assignment.role.name,
+                    "type": "custom",
+                    "description": assignment.role.description,
+                }
             elif assignment.legacy_role:
                 # Legacy role system
-                role_info["role_name"] = assignment.legacy_role
-                role_info["role_type"] = "legacy"
+                warehouse_info["role"] = {
+                    "name": assignment.legacy_role,
+                    "type": "legacy",
+                    "display_name": dict(UserWarehouse.ROLE_CHOICES).get(
+                        assignment.legacy_role, assignment.legacy_role
+                    ),
+                }
             else:
-                role_info["role_name"] = None
-                role_info["role_type"] = None
+                # No role assigned
+                warehouse_info["role"] = None
 
-            roles.append(role_info)
+            warehouses.append(warehouse_info)
 
-        return roles
+        return warehouses
 
     def get_primary_warehouse(self, obj):
-        """Get primary warehouse assignment."""
-        primary_assignment = UserWarehouse.objects.filter(
-            user=obj, is_active=True, is_primary=True
-        ).select_related("warehouse", "role").first()
+        """Get primary warehouse assignment with full details."""
+        primary_assignment = (
+            UserWarehouse.objects.filter(user=obj, is_active=True, is_primary=True)
+            .select_related("warehouse", "role")
+            .first()
+        )
 
         if not primary_assignment:
             return None
 
-        return {
+        warehouse_info = {
             "warehouse_id": primary_assignment.warehouse.id,
             "warehouse_code": primary_assignment.warehouse.code,
             "warehouse_name": primary_assignment.warehouse.name,
-            "role": (
-                primary_assignment.role.name
-                if primary_assignment.role
-                else primary_assignment.legacy_role
-            ),
+            "warehouse_type": primary_assignment.warehouse.type,
         }
+
+        # Role information
+        if primary_assignment.role:
+            warehouse_info["role"] = {
+                "id": primary_assignment.role.id,
+                "name": primary_assignment.role.name,
+                "type": "custom",
+                "description": primary_assignment.role.description,
+            }
+        elif primary_assignment.legacy_role:
+            warehouse_info["role"] = {
+                "name": primary_assignment.legacy_role,
+                "type": "legacy",
+                "display_name": dict(UserWarehouse.ROLE_CHOICES).get(
+                    primary_assignment.legacy_role, primary_assignment.legacy_role
+                ),
+            }
+        else:
+            warehouse_info["role"] = None
+
+        return warehouse_info
+
+
+class WarehouseUserAssignmentSerializer(serializers.Serializer):
+    """Serializer for assigning/updating user to warehouse."""
+
+    user_id = serializers.IntegerField(required=True, help_text="User ID to assign")
+    role_id = serializers.IntegerField(
+        required=False,
+        allow_null=True,
+        help_text="Role ID (custom role). If not provided, uses legacy_role.",
+    )
+    legacy_role = serializers.ChoiceField(
+        choices=UserWarehouse.ROLE_CHOICES,
+        required=False,
+        allow_blank=True,
+        help_text="Legacy role name (admin, manager, operator, viewer). Used if role_id is not provided.",
+    )
+    is_primary = serializers.BooleanField(
+        default=False, help_text="Set as user's primary warehouse"
+    )
+
+    def validate(self, attrs):
+        """Validate that either role_id or legacy_role is provided."""
+        role_id = attrs.get("role_id")
+        legacy_role = attrs.get("legacy_role")
+
+        if not role_id and not legacy_role:
+            raise serializers.ValidationError(
+                "Either role_id or legacy_role must be provided."
+            )
+
+        return attrs
+
+    def validate_user_id(self, value):
+        """Validate user exists and belongs to the same company."""
+        request = self.context.get("request")
+        if not request:
+            raise serializers.ValidationError("Request context is required.")
+
+        try:
+            user = User.objects.get(id=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found.")
+
+        # Verify user belongs to the same company
+        if user.company != request.user.company:
+            raise serializers.ValidationError("User must belong to the same company.")
+
+        return value
+
+    def validate_role_id(self, value):
+        """Validate role exists and belongs to the same company."""
+        if value is None:
+            return value
+
+        request = self.context.get("request")
+        if not request:
+            raise serializers.ValidationError("Request context is required.")
+
+        try:
+            role = Role.objects.get(id=value)
+        except Role.DoesNotExist:
+            raise serializers.ValidationError("Role not found.")
+
+        # Verify role belongs to the same company
+        if role.company != request.user.company:
+            raise serializers.ValidationError("Role must belong to the same company.")
+
+        return value

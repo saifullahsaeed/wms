@@ -79,6 +79,11 @@ class User(AbstractUser):
         help_text="Can operate on warehouse tasks (picking, putaway, etc.).",
     )
 
+    class Meta:
+        permissions = [
+            ("manage_warehouse", "Can manage warehouse settings and assignments"),
+        ]
+
     def __str__(self) -> str:
         return f"{self.username} ({self.company})"
 

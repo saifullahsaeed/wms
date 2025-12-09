@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",  # For token blacklisting on logout
+    "drf_spectacular",
     "accounts",
     "masterdata",
     "inventory",
@@ -145,6 +146,85 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+# drf-spectacular settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "WMS API",
+    "DESCRIPTION": "Warehouse Management System API",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "TAGS": [
+        {
+            "name": "Accounts - Authentication",
+            "description": "Authentication endpoints for login, logout, registration, and token management.",
+        },
+        {
+            "name": "Accounts - User Management",
+            "description": "User profile management, password changes, and permission queries.",
+        },
+        {
+            "name": "Accounts - Company",
+            "description": "Company information and onboarding management.",
+        },
+        {
+            "name": "Accounts - Team Management",
+            "description": "Team member management including listing, creating, updating, and removing team members.",
+        },
+        {
+            "name": "Accounts - Warehouse Assignment",
+            "description": "Assigning and removing users from warehouses with specific roles.",
+        },
+        {
+            "name": "Masterdata - Warehouses",
+            "description": "Warehouse master data management including creation, updates, and validation.",
+        },
+        {
+            "name": "Masterdata - Products",
+            "description": "Product master data management including SKUs, categories, and barcodes.",
+        },
+        {
+            "name": "Masterdata - Locations",
+            "description": "Warehouse location hierarchy: zones, sections, racks, and bins.",
+        },
+        {
+            "name": "Masterdata - UOM",
+            "description": "Units of measure configuration.",
+        },
+        {
+            "name": "Masterdata - Partners",
+            "description": "Supplier, customer, and carrier master data.",
+        },
+        {
+            "name": "Masterdata - Configuration",
+            "description": "System configuration like reason codes.",
+        },
+        {
+            "name": "Inventory - Stock Levels",
+            "description": "Current inventory levels, availability, and stock summaries.",
+        },
+        {
+            "name": "Inventory - Movements",
+            "description": "Historical inventory movement records.",
+        },
+        {
+            "name": "Inventory - Adjustments",
+            "description": "Stock adjustments for corrections and variances.",
+        },
+        {
+            "name": "Inventory - Stock Counts",
+            "description": "Physical stock count sessions and line items.",
+        },
+        {
+            "name": "Inventory - Reservations",
+            "description": "Stock reservations for orders and allocations.",
+        },
+        {
+            "name": "Inventory - Custom Fields",
+            "description": "Custom field definitions and values for products and inventory items.",
+        },
+    ],
 }
 
 # JWT Settings

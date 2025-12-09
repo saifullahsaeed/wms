@@ -352,3 +352,121 @@ def require_warehouse_permission(
         raise PermissionError(
             f"User {user.username} does not have required permission for warehouse {warehouse.code}"
         )
+
+
+def get_user_permissions(user: User, warehouse: Warehouse = None) -> dict:
+    """
+    Get all permissions for a user, optionally scoped to a specific warehouse.
+    Returns a dictionary with permission keys and boolean values.
+    Useful for frontend to conditionally show/hide features.
+
+    Args:
+        user: User to get permissions for
+        warehouse: Optional warehouse to scope permissions to. If None, returns company-level permissions.
+
+    Returns:
+        Dictionary with permission flags:
+        {
+            "is_company_owner": bool,
+            "can_manage_team": bool,
+            "warehouses": [
+                {
+                    "warehouse_id": int,
+                    "warehouse_code": str,
+                    "warehouse_name": str,
+                    "can_access": bool,
+                    "can_manage_warehouse": bool,
+                    "can_pick_orders": bool,
+                    "can_putaway": bool,
+                    "can_view_inventory": bool,
+                    "can_manage_inventory": bool,
+                    "can_view_orders": bool,
+                    "can_manage_orders": bool,
+                    "role": {...}
+                }
+            ]
+        }
+    """
+    permissions = {
+        "is_company_owner": user.is_staff,
+        "can_manage_team": user.is_staff,  # Only owners can manage team
+        "warehouses": [],
+    }
+
+    # If warehouse is specified, return permissions for that warehouse only
+    if warehouse:
+        if not can_user_access_warehouse(user, warehouse):
+            return permissions
+
+        role = get_user_warehouse_role(user, warehouse)
+        role_info = None
+
+        if isinstance(role, Role):
+            role_info = {
+                "id": role.id,
+                "name": role.name,
+                "type": "custom",
+                "description": role.description,
+            }
+        elif role:
+            role_info = {
+                "name": role,
+                "type": "legacy",
+                "display_name": dict(UserWarehouse.ROLE_CHOICES).get(role, role),
+            }
+
+        permissions["warehouses"] = [
+            {
+                "warehouse_id": warehouse.id,
+                "warehouse_code": warehouse.code,
+                "warehouse_name": warehouse.name,
+                "can_access": True,
+                "can_manage_warehouse": can_user_manage_warehouse(user, warehouse),
+                "can_pick_orders": can_user_pick_orders(user, warehouse),
+                "can_putaway": can_user_putaway(user, warehouse),
+                "can_view_inventory": can_user_view_inventory(user, warehouse),
+                "can_manage_inventory": can_user_manage_inventory(user, warehouse),
+                "can_view_orders": can_user_view_orders(user, warehouse),
+                "can_manage_orders": can_user_manage_orders(user, warehouse),
+                "role": role_info,
+            }
+        ]
+    else:
+        # Return permissions for all warehouses user has access to
+        warehouses = get_user_warehouses(user, active_only=True)
+        for wh in warehouses:
+            role = get_user_warehouse_role(user, wh)
+            role_info = None
+
+            if isinstance(role, Role):
+                role_info = {
+                    "id": role.id,
+                    "name": role.name,
+                    "type": "custom",
+                    "description": role.description,
+                }
+            elif role:
+                role_info = {
+                    "name": role,
+                    "type": "legacy",
+                    "display_name": dict(UserWarehouse.ROLE_CHOICES).get(role, role),
+                }
+
+            permissions["warehouses"].append(
+                {
+                    "warehouse_id": wh.id,
+                    "warehouse_code": wh.code,
+                    "warehouse_name": wh.name,
+                    "can_access": True,
+                    "can_manage_warehouse": can_user_manage_warehouse(user, wh),
+                    "can_pick_orders": can_user_pick_orders(user, wh),
+                    "can_putaway": can_user_putaway(user, wh),
+                    "can_view_inventory": can_user_view_inventory(user, wh),
+                    "can_manage_inventory": can_user_manage_inventory(user, wh),
+                    "can_view_orders": can_user_view_orders(user, wh),
+                    "can_manage_orders": can_user_manage_orders(user, wh),
+                    "role": role_info,
+                }
+            )
+
+    return permissions
